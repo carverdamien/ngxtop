@@ -204,7 +204,7 @@ class SQLProcessor(object):
         self.index_fields = index_fields if index_fields is not None else []
         self.column_list = ','.join(fields)
         self.holder_list = ','.join(':%s' % var for var in fields)
-        self.conn = sqlite3.connect(':memory:')
+        self.conn = sqlite3.connect('ngxtop.db')
         self.init_db()
 
     def process(self, records):
@@ -214,6 +214,7 @@ class SQLProcessor(object):
         with closing(self.conn.cursor()) as cursor:
             for r in records:
                 cursor.execute(insert, r)
+        self.conn.commit()
 
     def report(self):
         if not self.begin:
@@ -243,11 +244,15 @@ class SQLProcessor(object):
                 sql = 'create index log_idx%d on log (%s)' % (idx, field)
                 logging.info('sqlite init: %s', sql)
                 cursor.execute(sql)
+        self.conn.commit()
 
     def count(self):
         with closing(self.conn.cursor()) as cursor:
             cursor.execute('select count(1) from log')
             return cursor.fetchone()[0]
+
+    def close(self):
+        return self.conn.close()
 
 
 # ===============
@@ -368,6 +373,7 @@ def process(arguments):
     processor = build_processor(arguments)
     setup_reporter(processor, arguments)
     process_log(source, pattern, processor, arguments)
+    processor.close()
 
 
 def main():
