@@ -107,7 +107,7 @@ DEFAULT_QUERIES = [
      LIMIT %(--limit)s''')
 ]
 
-DEFAULT_FIELDS = set(['status_type', 'bytes_sent'])
+DEFAULT_FIELDS = set(['status_type', 'bytes_sent', 'time_local', 'remote_addr'])
 
 
 # ======================
@@ -191,6 +191,8 @@ def parse_log(lines, pattern):
     records = map_field('bytes_sent', to_int, records)
     records = map_field('request_time', to_float, records)
     records = add_field('request_path', parse_request_path, records)
+    records = add_field('time_local',str,records)
+    records = add_field('remote_addr',str,records)
     return records
 
 
