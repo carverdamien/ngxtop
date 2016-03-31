@@ -62,7 +62,7 @@ import curses
 import logging
 import os
 import sqlite3
-import time
+import time, datetime
 import sys
 import signal
 
@@ -107,7 +107,7 @@ DEFAULT_QUERIES = [
      LIMIT %(--limit)s''')
 ]
 
-DEFAULT_FIELDS = set(['status_type', 'bytes_sent', 'time_local', 'remote_addr'])
+DEFAULT_FIELDS = set(['status_type', 'bytes_sent', 'time_local', 'remote_addr', 'http_referer'])
 
 
 # ======================
@@ -191,8 +191,11 @@ def parse_log(lines, pattern):
     records = map_field('bytes_sent', to_int, records)
     records = map_field('request_time', to_float, records)
     records = add_field('request_path', parse_request_path, records)
-    records = add_field('time_local',str,records)
+    def convert_time(strtime):
+        return int((datetime.datetime.strptime(strtime.split(" ")[0],'%d/%b/%Y:%H:%M:%S') - datetime.datetime(1970, 1, 1)).total_seconds())
+    records = map_field('time_local',convert_time,records)
     records = add_field('remote_addr',str,records)
+    records = add_field('http_referer',str,records)
     return records
 
 
